@@ -118,16 +118,20 @@ integer place_stone(integer x, integer y, integer player) {
         return FALSE;
     }
 
-    // Place stone
     board_state = llListReplaceList(board_state, [player], idx, idx);
 
-    // Check for captures
+    vector pos = <GO_BOARD_OFFSET + x * GO_CELL_SIZE,
+                  GO_BOARD_OFFSET + y * GO_CELL_SIZE,
+                  0.1>;
+    string template_name = (string)player + "_stone";
+
+    llRezObject(template_name, llGetPos() + pos, ZERO_VECTOR, ZERO_ROTATION, (x << 16) | y);
+
     integer captured = check_and_capture(player);
     if (captured > 0) {
         say_game((string)captured + " stone(s) captured!");
     }
 
-    // Record in history for undo
     move_history += [x, y, player];
 
     return TRUE;

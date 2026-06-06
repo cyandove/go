@@ -51,11 +51,10 @@ integer place_stone(integer x, integer y, integer player) {
 
     board_state = llListReplaceList(board_state, [player], idx, idx);
 
-    // Request stone from sovers to display piece at this position
     vector pos = get_cell_position(x, y);
-    string stone_name = (string)player + "_stone_" + (string)x + "_" + (string)y;
+    string template_name = (string)player + "_stone";
 
-    llRezObject(stone_name, llGetPos() + pos, ZERO_VECTOR, ZERO_ROTATION, 0);
+    llRezObject(template_name, llGetPos() + pos, ZERO_VECTOR, ZERO_ROTATION, (x << 16) | y);
 
     return TRUE;
 }

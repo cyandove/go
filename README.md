@@ -13,7 +13,7 @@ This system provides two versions:
 ### What You Need
 1. A Second Life region where you have building permissions
 2. The LSL scripts in this repository
-3. Stone object templates (created in-world or provided)
+3. Two simple stone prims (cube or sphere)
 
 ### Installation
 

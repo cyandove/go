@@ -31,22 +31,21 @@ Individual stone piece script. Each stone:
 
 **Resizing tip**: You can resize the board prim at any time, and the cell sizes will automatically adjust. Just reset the script to recalculate.
 
-### Step 2: Prepare Stone Objects
-Create two stone object templates in your inventory:
-- Name: `1_stone` (Black stones)
-- Name: `2_stone` (White stones)
+### Step 2: Prepare Stone Templates
+Create two stone object templates and put them **in the board prim's inventory**:
 
-For each template:
-1. Rez a small sphere or cube
-2. Add the **stone.lsl** script
-3. Save as an object in inventory
-4. You can customize appearance (color, texture, size)
+1. Create a small sphere or cube for a black stone
+   - Add the **stone.lsl** script to it
+   - Name it `1_stone`
+   - Customize appearance if desired (the script sets color automatically)
 
-**Note:** The board.lsl script will rez stones dynamically with the naming convention:
-- `1_stone_X_Y` for black stones
-- `2_stone_X_Y` for white stones
+2. Duplicate it and modify for white stone
+   - Name it `2_stone`
+   - Script will set color automatically
 
-Make sure these templates exist in the same region/inventory where the board operates.
+3. **Put both templates into the board prim's inventory** (drag them into the board object's inventory)
+
+The board will automatically rez copies of these templates when stones are placed, so you only need one copy of each template in the board's inventory.
 
 ### Step 3: Start Playing
 1. Touch the transparent board at any intersection

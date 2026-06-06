@@ -104,8 +104,11 @@ default {
 
         if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) {
             if (place_stone(x, y, current_player)) {
-                llSay(0, (current_player == 1 ? "Black" : "White") +
-                      " plays at (" + (string)x + ", " + (string)y + ")");
+                string player_color = "White";
+                if (current_player == 1) {
+                    player_color = "Black";
+                }
+                llSay(0, player_color + " plays at (" + (string)x + ", " + (string)y + ")");
                 pass_turn();
             } else {
                 llSay(0, "Position (" + (string)x + ", " + (string)y + ") is occupied or invalid!");
@@ -119,7 +122,11 @@ default {
         } else if (message == "pass") {
             pass_turn();
         } else if (message == "status") {
-            llSay(0, "Current Player: " + ((current_player == 1) ? "Black" : "White"));
+            string current_color = "White";
+            if (current_player == 1) {
+                current_color = "Black";
+            }
+            llSay(0, "Current Player: " + current_color);
             llSay(0, "Stones placed: " + (string)(llGetListLength(board_state) -
                     llListFindList(board_state, [0])));
         }

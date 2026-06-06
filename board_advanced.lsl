@@ -1,47 +1,36 @@
-// Advanced Go Game Board Controller
-// Includes capture detection, scoring, and improved game flow
+// Go Board
+// Standard rules: placement, group capture, suicide prevention
 
-// Configuration: Change GO_BOARD_SIZE to resize (9, 13, 19 are standard)
-integer GO_BOARD_SIZE = 19;
+// Configuration: 9, 13, and 19 are standard sizes
+integer BOARD_SIZE = 19;
 
-// Calculated automatically from board prim dimensions
-float GO_CELL_SIZE;
-float GO_BOARD_OFFSET;
+float CELL_SIZE;
+float BOARD_OFFSET;
 
-// Player constants
 integer BLACK = 1;
 integer WHITE = 2;
 integer EMPTY = 0;
 
-// Game state: 0 = empty, 1 = black, 2 = white
 list board_state = [];
 integer current_player = BLACK;
 integer game_active = TRUE;
-
-// Capture tracking
 integer black_captures = 0;
 integer white_captures = 0;
-
-// Game history for undo
 list move_history = [];
 
 calculate_dimensions() {
-    vector board_size = llGetScale();
-    float board_x = board_size.x;
-    float board_y = board_size.y;
-    float min_dim = board_x;
-    if (board_y < min_dim) min_dim = board_y;
-
-    GO_CELL_SIZE = min_dim / GO_BOARD_SIZE;
-    GO_BOARD_OFFSET = -(min_dim / 2.0) + (GO_CELL_SIZE / 2.0);
-
-    llSetObjectDesc((string)GO_BOARD_SIZE + "|" + (string)GO_CELL_SIZE);
+    vector scale = llGetScale();
+    float min_dim = scale.x;
+    if (scale.y < min_dim) min_dim = scale.y;
+    CELL_SIZE = min_dim / BOARD_SIZE;
+    BOARD_OFFSET = -(min_dim / 2.0) + (CELL_SIZE / 2.0);
+    llSetObjectDesc((string)BOARD_SIZE + "|" + (string)CELL_SIZE);
 }
 
 init_board() {
     integer i;
     board_state = [];
-    for (i = 0; i < GO_BOARD_SIZE * GO_BOARD_SIZE; ++i) {
+    for (i = 0; i < BOARD_SIZE * BOARD_SIZE; ++i) {
         board_state += [0];
     }
     black_captures = 0;
@@ -49,69 +38,110 @@ init_board() {
     move_history = [];
 }
 
-integer has_liberty(integer x, integer y) {
-    // Check if a stone at (x,y) has a liberty (empty adjacent space)
-    list adjacent = get_adjacent(x, y);
+integer coord_to_index(integer x, integer y) {
+    if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return -1;
+    return y * BOARD_SIZE + x;
+}
+
+// Returns flat list [x0,y0, x1,y1, ...]
+list get_adjacent(integer x, integer y) {
+    list adj = [];
+    if (x + 1 < BOARD_SIZE) adj += [x + 1, y];
+    if (x - 1 >= 0)         adj += [x - 1, y];
+    if (y + 1 < BOARD_SIZE) adj += [x, y + 1];
+    if (y - 1 >= 0)         adj += [x, y - 1];
+    return adj;
+}
+
+// BFS flood-fill to find all connected stones of the same color
+// Returns flat list [x0,y0, x1,y1, ...]
+list find_group(integer sx, integer sy, integer color) {
+    list group = [];
+    list frontier = [sx, sy];
+
+    while (llGetListLength(frontier) > 0) {
+        integer cx = llList2Integer(frontier, 0);
+        integer cy = llList2Integer(frontier, 1);
+        frontier = llDeleteSubList(frontier, 0, 1);
+
+        integer idx = coord_to_index(cx, cy);
+        if (idx != -1 &&
+            llList2Integer(board_state, idx) == color &&
+            llListFindList(group, [cx, cy]) == -1) {
+
+            group += [cx, cy];
+
+            list adj = get_adjacent(cx, cy);
+            integer i;
+            for (i = 0; i < llGetListLength(adj); i += 2) {
+                integer nx = llList2Integer(adj, i);
+                integer ny = llList2Integer(adj, i + 1);
+                if (llListFindList(group, [nx, ny]) == -1) {
+                    frontier += [nx, ny];
+                }
+            }
+        }
+    }
+    return group;
+}
+
+// True if any stone in the group has at least one empty adjacent cell
+integer group_has_liberty(list group) {
     integer i;
-    for (i = 0; i < llGetListLength(adjacent); ++i) {
-        vector coord = llList2Vector(adjacent, i);
-        integer idx = coord_to_index((integer)coord.x, (integer)coord.y);
-        if (llList2Integer(board_state, idx) == EMPTY) {
-            return TRUE;
+    for (i = 0; i < llGetListLength(group); i += 2) {
+        integer x = llList2Integer(group, i);
+        integer y = llList2Integer(group, i + 1);
+        list adj = get_adjacent(x, y);
+        integer j;
+        for (j = 0; j < llGetListLength(adj); j += 2) {
+            integer idx = coord_to_index(llList2Integer(adj, j), llList2Integer(adj, j + 1));
+            if (llList2Integer(board_state, idx) == EMPTY) {
+                return TRUE;
+            }
         }
     }
     return FALSE;
 }
 
-integer capture_group(integer x, integer y, integer opponent) {
-    // Recursively capture opponent stones in a group with no liberties
-    integer idx = coord_to_index(x, y);
-    if (idx == -1 || llList2Integer(board_state, idx) != opponent) return 0;
+// Check opponent groups adjacent to the placed stone; remove any with no liberties.
+// Returns flat list of captured positions [x0,y0, x1,y1, ...]
+list capture_adjacent(integer px, integer py, integer opponent) {
+    list captured = [];
+    list checked = [];
 
-    board_state = llListReplaceList(board_state, [EMPTY], idx, idx);
-    integer captured = 1;
-
-    list adjacent = get_adjacent(x, y);
+    list adj = get_adjacent(px, py);
     integer i;
-    for (i = 0; i < llGetListLength(adjacent); ++i) {
-        vector coord = llList2Vector(adjacent, i);
-        if (!has_liberty((integer)coord.x, (integer)coord.y) &&
-            llList2Integer(board_state, coord_to_index((integer)coord.x, (integer)coord.y)) == opponent) {
-            captured += capture_group((integer)coord.x, (integer)coord.y, opponent);
-        }
-    }
-    return captured;
-}
+    for (i = 0; i < llGetListLength(adj); i += 2) {
+        integer nx = llList2Integer(adj, i);
+        integer ny = llList2Integer(adj, i + 1);
 
-integer check_and_capture(integer player) {
-    // Check all adjacent opponent groups for captures
-    integer opponent;
-    if (player == BLACK) {
-        opponent = WHITE;
-    } else {
-        opponent = BLACK;
-    }
-    integer captured = 0;
+        integer idx = coord_to_index(nx, ny);
+        if (idx != -1 &&
+            llList2Integer(board_state, idx) == opponent &&
+            llListFindList(checked, [nx, ny]) == -1) {
 
-    list adjacent = [];
-    integer i;
-    for (i = 0; i < GO_BOARD_SIZE; ++i) {
-        integer j;
-        for (j = 0; j < GO_BOARD_SIZE; ++j) {
-            if (llList2Integer(board_state, coord_to_index(i, j)) == opponent) {
-                if (!has_liberty(i, j)) {
-                    integer c = capture_group(i, j, opponent);
-                    captured += c;
-                    if (player == BLACK) {
-                        black_captures += c;
-                    } else {
-                        white_captures += c;
-                    }
+            list group = find_group(nx, ny, opponent);
+            checked += group;
+
+            if (!group_has_liberty(group)) {
+                integer j;
+                for (j = 0; j < llGetListLength(group); j += 2) {
+                    integer gx = llList2Integer(group, j);
+                    integer gy = llList2Integer(group, j + 1);
+                    integer gidx = coord_to_index(gx, gy);
+                    board_state = llListReplaceList(board_state, [EMPTY], gidx, gidx);
+                    captured += [gx, gy];
                 }
             }
         }
     }
     return captured;
+}
+
+// start_param packing: bits 0-7 = x, bits 8-15 = y, bits 16-31 = cell_size in cm
+integer pack_start_param(integer x, integer y) {
+    integer cell_cm = (integer)(CELL_SIZE * 100.0);
+    return (cell_cm << 16) | (y << 8) | x;
 }
 
 integer place_stone(integer x, integer y, integer player) {
@@ -120,28 +150,6 @@ integer place_stone(integer x, integer y, integer player) {
         return FALSE;
     }
 
-    board_state = llListReplaceList(board_state, [player], idx, idx);
-
-    vector pos = <GO_BOARD_OFFSET + x * GO_CELL_SIZE,
-                  GO_BOARD_OFFSET + y * GO_CELL_SIZE,
-                  0.1>;
-    string template_name = (string)player + "_stone";
-    string stone_name = "stone_" + (string)x + "_" + (string)y;
-
-    llRezObject(template_name, llGetPos() + pos, ZERO_VECTOR, ZERO_ROTATION, (x << 16) | y);
-
-    integer captured = check_and_capture(player);
-    if (captured > 0) {
-        say_game((string)captured + " stone(s) captured!");
-        remove_captured_stones(player);
-    }
-
-    move_history += [x, y, player];
-
-    return TRUE;
-}
-
-remove_captured_stones(integer player) {
     integer opponent;
     if (player == BLACK) {
         opponent = WHITE;
@@ -149,15 +157,47 @@ remove_captured_stones(integer player) {
         opponent = BLACK;
     }
 
-    integer i;
-    for (i = 0; i < GO_BOARD_SIZE; ++i) {
-        integer j;
-        for (j = 0; j < GO_BOARD_SIZE; ++j) {
-            if (llList2Integer(board_state, coord_to_index(i, j)) == EMPTY) {
-                llSay(1, "delete:" + (string)i + ":" + (string)j);
-            }
+    board_state = llListReplaceList(board_state, [player], idx, idx);
+
+    list captured = capture_adjacent(x, y, opponent);
+
+    // Suicide rule: if the placed group still has no liberty, the move is illegal
+    // (unless it just captured — in which case it may now have liberties)
+    list own_group = find_group(x, y, player);
+    if (!group_has_liberty(own_group)) {
+        // Illegal move — undo placement
+        board_state = llListReplaceList(board_state, [EMPTY], idx, idx);
+        // Restore any erroneously "captured" stones (shouldn't occur, but be safe)
+        integer k;
+        for (k = 0; k < llGetListLength(captured); k += 2) {
+            integer cx = llList2Integer(captured, k);
+            integer cy = llList2Integer(captured, k + 1);
+            board_state = llListReplaceList(board_state, [opponent], coord_to_index(cx, cy), coord_to_index(cx, cy));
+        }
+        return FALSE;
+    }
+
+    // Rez stone prim from board inventory
+    vector pos = <BOARD_OFFSET + x * CELL_SIZE, BOARD_OFFSET + y * CELL_SIZE, 0.1>;
+    llRezObject((string)player + "_stone", llGetPos() + pos, ZERO_VECTOR, ZERO_ROTATION, pack_start_param(x, y));
+
+    // Handle captures
+    integer num_captured = llGetListLength(captured) / 2;
+    if (num_captured > 0) {
+        if (player == BLACK) {
+            black_captures += num_captured;
+        } else {
+            white_captures += num_captured;
+        }
+        say_game((string)num_captured + " stone(s) captured!");
+        integer i;
+        for (i = 0; i < llGetListLength(captured); i += 2) {
+            llSay(1, "delete:" + (string)llList2Integer(captured, i) + ":" + (string)llList2Integer(captured, i + 1));
         }
     }
+
+    move_history += [x, y, player];
+    return TRUE;
 }
 
 pass_turn() {
@@ -170,16 +210,17 @@ pass_turn() {
 }
 
 show_status() {
-    say_game("Black: " + (string)black_captures + " captured | " +
-            "White: " + (string)white_captures + " captured");
-    say_game("Current player: " + player_name(current_player));
+    say_game("Black captures: " + (string)black_captures +
+             " | White captures: " + (string)white_captures);
+    say_game(player_name(current_player) + " to play");
 }
 
 reset_game() {
     init_board();
     current_player = BLACK;
     game_active = TRUE;
-    say_game("Game reset. " + player_name(BLACK) + " to play.");
+    llSay(1, "delete_all");
+    say_game("New game. Black to play.");
 }
 
 undo_last_move() {
@@ -187,48 +228,22 @@ undo_last_move() {
         say_game("No moves to undo");
         return;
     }
-
     integer x = llList2Integer(move_history, -3);
     integer y = llList2Integer(move_history, -2);
     integer player = llList2Integer(move_history, -1);
 
-    integer idx = coord_to_index(x, y);
-    board_state = llListReplaceList(board_state, [EMPTY], idx, idx);
+    board_state = llListReplaceList(board_state, [EMPTY], coord_to_index(x, y), coord_to_index(x, y));
     move_history = llDeleteSubList(move_history, -3, -1);
-
     current_player = player;
-    say_game("Move undone at " + format_coord(x, y));
+
+    llSay(1, "delete:" + (string)x + ":" + (string)y);
+    say_game("Move undone. Note: captures cannot be restored.");
 }
 
-string player_name(integer player) {
-    if (player == BLACK) return "Black";
-    if (player == WHITE) return "White";
+string player_name(integer p) {
+    if (p == BLACK) return "Black";
+    if (p == WHITE) return "White";
     return "Unknown";
-}
-
-vector world_to_coord(vector world_pos, vector board_pos) {
-    vector local_pos = world_pos - board_pos;
-    integer x = llRound((local_pos.x - GO_BOARD_OFFSET) / GO_CELL_SIZE);
-    integer y = llRound((local_pos.y - GO_BOARD_OFFSET) / GO_CELL_SIZE);
-    return <x, y, 0>;
-}
-
-integer is_valid_coord(integer x, integer y) {
-    return (x >= 0 && x < GO_BOARD_SIZE && y >= 0 && y < GO_BOARD_SIZE);
-}
-
-integer coord_to_index(integer x, integer y) {
-    if (!is_valid_coord(x, y)) return -1;
-    return y * GO_BOARD_SIZE + x;
-}
-
-list get_adjacent(integer x, integer y) {
-    list adjacent = [];
-    if (is_valid_coord(x + 1, y)) adjacent += [<x + 1, y, 0>];
-    if (is_valid_coord(x - 1, y)) adjacent += [<x - 1, y, 0>];
-    if (is_valid_coord(x, y + 1)) adjacent += [<x, y + 1, 0>];
-    if (is_valid_coord(x, y - 1)) adjacent += [<x, y - 1, 0>];
-    return adjacent;
 }
 
 say_game(string msg) {
@@ -245,34 +260,27 @@ default {
         init_board();
         llListen(0, "", "", "");
         llSetAlpha(0.3, ALL_SIDES);
-        say_game("Advanced Go Board Ready (" + (string)GO_BOARD_SIZE + "x" + (string)GO_BOARD_SIZE + ")");
-        say_game("Cell size: " + (string)(llRound(GO_CELL_SIZE * 100.0) / 100.0) + "m");
-        say_game("Commands: touch=place, pass=pass turn, undo=undo, reset=new game, status=show score");
+        say_game((string)BOARD_SIZE + "x" + (string)BOARD_SIZE + " board ready. Black to play.");
+        say_game("Commands: pass, reset, status, undo");
     }
 
     touch_start(integer num_detected) {
-        if (!game_active) {
-            say_game("Game is not active");
-            return;
-        }
+        if (!game_active) return;
 
         vector touch_pos = llDetectedTouchPos(0);
-        vector coords = world_to_coord(touch_pos, llGetPos());
+        vector local_pos = touch_pos - llGetPos();
 
-        integer x = (integer)coords.x;
-        integer y = (integer)coords.y;
+        integer x = llRound((local_pos.x - BOARD_OFFSET) / CELL_SIZE);
+        integer y = llRound((local_pos.y - BOARD_OFFSET) / CELL_SIZE);
 
-        if (!is_valid_coord(x, y)) {
-            say_game("Invalid position");
-            return;
-        }
+        if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return;
 
         if (place_stone(x, y, current_player)) {
-            say_game(player_name(current_player) + " placed at " + format_coord(x, y));
+            say_game(player_name(current_player) + " plays at " + format_coord(x, y));
             show_status();
             pass_turn();
         } else {
-            say_game("Cannot place stone at " + format_coord(x, y));
+            say_game("Illegal move at " + format_coord(x, y));
         }
     }
 

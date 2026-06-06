@@ -22,6 +22,9 @@ default {
     }
 
     on_rez(integer start_param) {
+        // start_param == 0 means manually rezzed for setup — leave the template alone
+        if (start_param == 0) return;
+
         board_x = start_param & 0xFF;
         board_y = (start_param >> 8) & 0xFF;
         integer cell_cm = (start_param >> 16) & 0xFFFF;

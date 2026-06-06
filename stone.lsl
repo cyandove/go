@@ -4,9 +4,8 @@
 integer player;  // 1 for black, 2 for white
 integer board_x;
 integer board_y;
-key board_key;
 
-set_appearance() {
+void set_appearance() {
     if (player == 1) {
         // Black stone
         llSetColor(<0.0, 0.0, 0.0>, ALL_SIDES);
@@ -29,8 +28,6 @@ default {
             board_x = (integer)llList2String(parts, 2);
             board_y = (integer)llList2String(parts, 3);
         }
-
-        board_key = llGetOwner();
 
         set_appearance();
 

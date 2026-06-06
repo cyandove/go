@@ -15,7 +15,7 @@ integer white_captures = 0;
 // Game history for undo
 list move_history = [];
 
-init_board() {
+void init_board() {
     integer i;
     board_state = [];
     for (i = 0; i < GO_BOARD_SIZE * GO_BOARD_SIZE; ++i) {
@@ -26,7 +26,7 @@ init_board() {
     move_history = [];
 }
 
-has_liberty(integer x, integer y) {
+integer has_liberty(integer x, integer y) {
     // Check if a stone at (x,y) has a liberty (empty adjacent space)
     list adjacent = get_adjacent(x, y);
     integer i;
@@ -40,7 +40,7 @@ has_liberty(integer x, integer y) {
     return FALSE;
 }
 
-capture_group(integer x, integer y, integer opponent) {
+integer capture_group(integer x, integer y, integer opponent) {
     // Recursively capture opponent stones in a group with no liberties
     integer idx = coord_to_index(x, y);
     if (idx == -1 || llList2Integer(board_state, idx) != opponent) return 0;
@@ -60,7 +60,7 @@ capture_group(integer x, integer y, integer opponent) {
     return captured;
 }
 
-check_and_capture(integer player) {
+integer check_and_capture(integer player) {
     // Check all adjacent opponent groups for captures
     integer opponent;
     if (player == BLACK) {
@@ -91,7 +91,7 @@ check_and_capture(integer player) {
     return captured;
 }
 
-place_stone(integer x, integer y, integer player) {
+integer place_stone(integer x, integer y, integer player) {
     integer idx = coord_to_index(x, y);
     if (idx == -1 || llList2Integer(board_state, idx) != EMPTY) {
         return FALSE;
@@ -112,7 +112,7 @@ place_stone(integer x, integer y, integer player) {
     return TRUE;
 }
 
-pass_turn() {
+void pass_turn() {
     if (current_player == BLACK) {
         current_player = WHITE;
     } else {
@@ -121,20 +121,20 @@ pass_turn() {
     say_game(player_name(current_player) + " to play");
 }
 
-show_status() {
+void show_status() {
     say_game("Black: " + (string)black_captures + " captured | " +
             "White: " + (string)white_captures + " captured");
     say_game("Current player: " + player_name(current_player));
 }
 
-reset_game() {
+void reset_game() {
     init_board();
     current_player = BLACK;
     game_active = TRUE;
     say_game("Game reset. " + player_name(BLACK) + " to play.");
 }
 
-undo_last_move() {
+void undo_last_move() {
     if (llGetListLength(move_history) < 3) {
         say_game("No moves to undo");
         return;
@@ -155,6 +155,7 @@ undo_last_move() {
 default {
     state_entry() {
         init_board();
+        llListen(0, "", "", "");
         llSetAlpha(0.3, ALL_SIDES);
         say_game("Advanced Go Board Ready");
         say_game("Commands: touch=place, pass=pass turn, undo=undo, reset=new game, status=show score");

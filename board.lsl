@@ -99,7 +99,7 @@ default {
         init_board();
         llListen(0, "", "", "");
         llSay(0, "Go Board Ready (" + (string)BOARD_SIZE + "x" + (string)BOARD_SIZE + ")");
-        llSay(0, "Cell size: " + (string)llRound(CELL_SIZE * 100.0) / 100.0 + "m");
+        llSay(0, "Cell size: " + (string)(llRound(CELL_SIZE * 100.0) / 100.0) + "m");
         llSay(0, "Black plays first. Touch the board to place stones.");
 
         // Make board transparent

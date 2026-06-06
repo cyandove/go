@@ -219,7 +219,7 @@ default {
         llListen(0, "", "", "");
         llSetAlpha(0.3, ALL_SIDES);
         say_game("Advanced Go Board Ready (" + (string)GO_BOARD_SIZE + "x" + (string)GO_BOARD_SIZE + ")");
-        say_game("Cell size: " + (string)llRound(GO_CELL_SIZE * 100.0) / 100.0 + "m");
+        say_game("Cell size: " + (string)(llRound(GO_CELL_SIZE * 100.0) / 100.0) + "m");
         say_game("Commands: touch=place, pass=pass turn, undo=undo, reset=new game, status=show score");
     }
 

@@ -1,7 +1,15 @@
 // Advanced Go Game Board Controller
 // Includes capture detection, scoring, and improved game flow
 
-#include "utils.lsl"
+// Board configuration
+integer GO_BOARD_SIZE = 19;
+float GO_CELL_SIZE = 0.5;
+float GO_BOARD_OFFSET = -4.75;
+
+// Player constants
+integer BLACK = 1;
+integer WHITE = 2;
+integer EMPTY = 0;
 
 // Game state: 0 = empty, 1 = black, 2 = white
 list board_state = [];
@@ -150,6 +158,45 @@ undo_last_move() {
 
     current_player = player;
     say_game("Move undone at " + format_coord(x, y));
+}
+
+string player_name(integer player) {
+    if (player == BLACK) return "Black";
+    if (player == WHITE) return "White";
+    return "Unknown";
+}
+
+vector world_to_coord(vector world_pos, vector board_pos) {
+    vector local_pos = world_pos - board_pos;
+    integer x = llRound((local_pos.x - GO_BOARD_OFFSET) / GO_CELL_SIZE);
+    integer y = llRound((local_pos.y - GO_BOARD_OFFSET) / GO_CELL_SIZE);
+    return <x, y, 0>;
+}
+
+integer is_valid_coord(integer x, integer y) {
+    return (x >= 0 && x < GO_BOARD_SIZE && y >= 0 && y < GO_BOARD_SIZE);
+}
+
+integer coord_to_index(integer x, integer y) {
+    if (!is_valid_coord(x, y)) return -1;
+    return y * GO_BOARD_SIZE + x;
+}
+
+list get_adjacent(integer x, integer y) {
+    list adjacent = [];
+    if (is_valid_coord(x + 1, y)) adjacent += [<x + 1, y, 0>];
+    if (is_valid_coord(x - 1, y)) adjacent += [<x - 1, y, 0>];
+    if (is_valid_coord(x, y + 1)) adjacent += [<x, y + 1, 0>];
+    if (is_valid_coord(x, y - 1)) adjacent += [<x, y - 1, 0>];
+    return adjacent;
+}
+
+say_game(string msg) {
+    llSay(0, "[Go] " + msg);
+}
+
+string format_coord(integer x, integer y) {
+    return "(" + (string)x + "," + (string)y + ")";
 }
 
 default {

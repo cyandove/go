@@ -40,10 +40,13 @@ default {
             player = (integer)llList2String(parts, 0);
         }
 
+        llSetObjectName("stone_" + (string)board_x + "_" + (string)board_y);
+
         set_appearance();
         resize_for_board();
 
         llSetPos(llGetPos() + <0, 0, 0.05>);
+        llListen(1, "", "", "");
     }
 
     touch_start(integer num_detected) {
@@ -61,6 +64,21 @@ default {
             }
             llSay(0, player_color + " stone at (" +
                   (string)board_x + ", " + (string)board_y + ")");
+        }
+    }
+
+    listen(integer channel, string name, key id, string message) {
+        if (channel == 1) {
+            list parts = llParseString2List(message, [":"], []);
+            if (llGetListLength(parts) >= 3) {
+                if (llList2String(parts, 0) == "delete") {
+                    integer x = (integer)llList2String(parts, 1);
+                    integer y = (integer)llList2String(parts, 2);
+                    if (x == board_x && y == board_y) {
+                        llDie();
+                    }
+                }
+            }
         }
     }
 

@@ -126,17 +126,38 @@ integer place_stone(integer x, integer y, integer player) {
                   GO_BOARD_OFFSET + y * GO_CELL_SIZE,
                   0.1>;
     string template_name = (string)player + "_stone";
+    string stone_name = "stone_" + (string)x + "_" + (string)y;
 
     llRezObject(template_name, llGetPos() + pos, ZERO_VECTOR, ZERO_ROTATION, (x << 16) | y);
 
     integer captured = check_and_capture(player);
     if (captured > 0) {
         say_game((string)captured + " stone(s) captured!");
+        remove_captured_stones(player);
     }
 
     move_history += [x, y, player];
 
     return TRUE;
+}
+
+remove_captured_stones(integer player) {
+    integer opponent;
+    if (player == BLACK) {
+        opponent = WHITE;
+    } else {
+        opponent = BLACK;
+    }
+
+    integer i;
+    for (i = 0; i < GO_BOARD_SIZE; ++i) {
+        integer j;
+        for (j = 0; j < GO_BOARD_SIZE; ++j) {
+            if (llList2Integer(board_state, coord_to_index(i, j)) == EMPTY) {
+                llSay(1, "delete:" + (string)i + ":" + (string)j);
+            }
+        }
+    }
 }
 
 pass_turn() {

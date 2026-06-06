@@ -5,7 +5,7 @@ integer player;  // 1 for black, 2 for white
 integer board_x;
 integer board_y;
 
-void set_appearance() {
+set_appearance() {
     if (player == 1) {
         // Black stone
         llSetColor(<0.0, 0.0, 0.0>, ALL_SIDES);

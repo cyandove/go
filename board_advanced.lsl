@@ -15,7 +15,7 @@ integer white_captures = 0;
 // Game history for undo
 list move_history = [];
 
-void init_board() {
+init_board() {
     integer i;
     board_state = [];
     for (i = 0; i < GO_BOARD_SIZE * GO_BOARD_SIZE; ++i) {
@@ -112,7 +112,7 @@ integer place_stone(integer x, integer y, integer player) {
     return TRUE;
 }
 
-void pass_turn() {
+pass_turn() {
     if (current_player == BLACK) {
         current_player = WHITE;
     } else {
@@ -121,20 +121,20 @@ void pass_turn() {
     say_game(player_name(current_player) + " to play");
 }
 
-void show_status() {
+show_status() {
     say_game("Black: " + (string)black_captures + " captured | " +
             "White: " + (string)white_captures + " captured");
     say_game("Current player: " + player_name(current_player));
 }
 
-void reset_game() {
+reset_game() {
     init_board();
     current_player = BLACK;
     game_active = TRUE;
     say_game("Game reset. " + player_name(BLACK) + " to play.");
 }
 
-void undo_last_move() {
+undo_last_move() {
     if (llGetListLength(move_history) < 3) {
         say_game("No moves to undo");
         return;

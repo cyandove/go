@@ -10,7 +10,7 @@ list board_state = [];
 integer current_player = 1;  // 1 for black, 2 for white
 integer game_active = TRUE;
 
-void init_board() {
+init_board() {
     integer i;
     board_state = [];
     for (i = 0; i < BOARD_SIZE * BOARD_SIZE; ++i) {
@@ -46,7 +46,7 @@ integer place_stone(integer x, integer y, integer player) {
     return TRUE;
 }
 
-void remove_stone(integer x, integer y) {
+remove_stone(integer x, integer y) {
     integer idx = get_board_index(x, y);
     if (idx != -1 && llList2Integer(board_state, idx) != 0) {
         board_state = llListReplaceList(board_state, [0], idx, idx);
@@ -59,7 +59,7 @@ integer get_stone_state(integer x, integer y) {
     return llList2Integer(board_state, idx);
 }
 
-void pass_turn() {
+pass_turn() {
     if (current_player == 1) {
         current_player = 2;
     } else {
@@ -72,7 +72,7 @@ void pass_turn() {
     llSay(0, "Player " + (string)current_player + "'s turn (Stone: " + stone_color + ")");
 }
 
-void reset_game() {
+reset_game() {
     init_board();
     current_player = 1;
     game_active = TRUE;

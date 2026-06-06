@@ -68,7 +68,7 @@ list get_adjacent(integer x, integer y) {
 }
 
 // Display a message with game prefix
-void say_game(string msg) {
+say_game(string msg) {
     llSay(0, "[Go] " + msg);
 }
 

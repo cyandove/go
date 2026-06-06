@@ -83,17 +83,28 @@ These scripts enforce basic Go placement rules:
 
 ## Configuration
 
-Edit these constants to customize:
+The board automatically calculates cell size based on the board prim's dimensions and the chosen board size. To customize:
+
+### Changing Board Size
+Edit `BOARD_SIZE` or `GO_BOARD_SIZE` in the script (for basic and advanced versions respectively):
 
 ```lsl
-integer GO_BOARD_SIZE = 19;      // 19x19, 13x13, 9x9, etc.
-float GO_CELL_SIZE = 0.5;        // Size of each intersection (meters)
-float GO_BOARD_OFFSET = -4.75;   // Offset to center board
+integer BOARD_SIZE = 19;  // Options: 9, 13, 19 (or any size you want)
 ```
 
-Adjust `GO_CELL_SIZE` based on your board prim size:
-- For a 10m board: use 0.526 for 19×19
-- For an 8m board: use 0.42 for 19×19
+Then reset the script. The board will automatically calculate the cell size.
+
+### Resizing the Board Prim
+Simply resize the board prim in-world:
+- Larger prim → larger cells (easier to click)
+- Smaller prim → smaller cells (more compact)
+
+The script automatically adapts. The board will display the calculated cell size on startup.
+
+Example sizes:
+- 10m × 10m prim with 19×19 board ≈ 0.526m per cell
+- 10m × 10m prim with 9×9 board ≈ 1.11m per cell
+- 5m × 5m prim with 19×19 board ≈ 0.263m per cell
 
 ## Commands
 

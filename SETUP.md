@@ -21,12 +21,15 @@ Individual stone piece script. Each stone:
 ## Installation in Second Life
 
 ### Step 1: Create the Board Prim
-1. Rez a cube prim (approximately 10m × 10m)
+1. Rez a cube prim (start with 10m × 10m)
 2. Name it "Go Board"
 3. Set it to transparent (alpha 0.3) - the script will handle this
 4. Resize it to be flat (make Z-dimension small, ~0.2m)
 5. Drop the **board.lsl** script into it
-6. **Alternatively**: Add a visible Go board texture to the prim for a better visual
+6. The script will automatically calculate cell sizes based on the prim's dimensions
+7. **Alternatively**: Add a visible Go board texture to the prim for a better visual
+
+**Resizing tip**: You can resize the board prim at any time, and the cell sizes will automatically adjust. Just reset the script to recalculate.
 
 ### Step 2: Prepare Stone Objects
 Create two stone object templates in your inventory:
@@ -71,12 +74,25 @@ Players should follow standard Go rules and manage captures manually, or expand 
 
 ## Configuration
 
-Edit these constants in **board.lsl** to customize:
+### Board Size
+Edit `BOARD_SIZE` in the script to change the board dimensions:
 ```lsl
-integer BOARD_SIZE = 19;    // 19x19 for full Go, 9x9 for 9x9, etc.
-float CELL_SIZE = 0.5;      // Size of each intersection in meters
-float BOARD_OFFSET = -4.75; // Offset to center the board
+integer BOARD_SIZE = 19;  // Standard options: 9, 13, or 19
 ```
+
+Common board sizes:
+- **19×19** - Full professional Go game (361 stones per player)
+- **13×13** - Medium game, plays faster
+- **9×9** - Quick game, good for beginners
+
+Reset the script after changing the board size.
+
+### Prim Dimensions
+The script automatically calculates cell size from your board prim's dimensions:
+- **Larger prim** → larger cells (easier for clicking)
+- **Smaller prim** → smaller cells (more compact layout)
+
+You can resize the prim at any time, then reset the script to adapt.
 
 ## Limitations & Future Enhancements
 

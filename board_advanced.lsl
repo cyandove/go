@@ -1,10 +1,12 @@
 // Advanced Go Game Board Controller
 // Includes capture detection, scoring, and improved game flow
 
-// Board configuration
+// Configuration: Change GO_BOARD_SIZE to resize (9, 13, 19 are standard)
 integer GO_BOARD_SIZE = 19;
-float GO_CELL_SIZE = 0.5;
-float GO_BOARD_OFFSET = -4.75;
+
+// Calculated automatically from board prim dimensions
+float GO_CELL_SIZE;
+float GO_BOARD_OFFSET;
 
 // Player constants
 integer BLACK = 1;
@@ -22,6 +24,17 @@ integer white_captures = 0;
 
 // Game history for undo
 list move_history = [];
+
+calculate_dimensions() {
+    vector board_size = llGetScale();
+    float board_x = board_size.x;
+    float board_y = board_size.y;
+    float min_dim = board_x;
+    if (board_y < min_dim) min_dim = board_y;
+
+    GO_CELL_SIZE = min_dim / GO_BOARD_SIZE;
+    GO_BOARD_OFFSET = -(min_dim / 2.0) + (GO_CELL_SIZE / 2.0);
+}
 
 init_board() {
     integer i;
@@ -201,10 +214,12 @@ string format_coord(integer x, integer y) {
 
 default {
     state_entry() {
+        calculate_dimensions();
         init_board();
         llListen(0, "", "", "");
         llSetAlpha(0.3, ALL_SIDES);
-        say_game("Advanced Go Board Ready");
+        say_game("Advanced Go Board Ready (" + (string)GO_BOARD_SIZE + "x" + (string)GO_BOARD_SIZE + ")");
+        say_game("Cell size: " + (string)llRound(GO_CELL_SIZE * 100.0) / 100.0 + "m");
         say_game("Commands: touch=place, pass=pass turn, undo=undo, reset=new game, status=show score");
     }
 

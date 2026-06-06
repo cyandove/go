@@ -1,14 +1,28 @@
 // Go Game Board Controller
 // Manages game state, validates moves, and communicates with stones
 
+// Configuration: Change BOARD_SIZE to resize (9, 13, 19 are standard)
 integer BOARD_SIZE = 19;
-float CELL_SIZE = 0.5;  // Size of each cell in meters
-float BOARD_OFFSET = -4.75;  // Offset to center board
+
+// Calculated automatically from board prim dimensions
+float CELL_SIZE;
+float BOARD_OFFSET;
 
 // Game state: 0 = empty, 1 = black, 2 = white
 list board_state = [];
 integer current_player = 1;  // 1 for black, 2 for white
 integer game_active = TRUE;
+
+calculate_dimensions() {
+    vector board_size = llGetScale();
+    float board_x = board_size.x;
+    float board_y = board_size.y;
+    float min_dim = board_x;
+    if (board_y < min_dim) min_dim = board_y;
+
+    CELL_SIZE = min_dim / BOARD_SIZE;
+    BOARD_OFFSET = -(min_dim / 2.0) + (CELL_SIZE / 2.0);
+}
 
 init_board() {
     integer i;
@@ -81,9 +95,11 @@ reset_game() {
 
 default {
     state_entry() {
+        calculate_dimensions();
         init_board();
         llListen(0, "", "", "");
-        llSay(0, "Go Board Ready");
+        llSay(0, "Go Board Ready (" + (string)BOARD_SIZE + "x" + (string)BOARD_SIZE + ")");
+        llSay(0, "Cell size: " + (string)llRound(CELL_SIZE * 100.0) / 100.0 + "m");
         llSay(0, "Black plays first. Touch the board to place stones.");
 
         // Make board transparent

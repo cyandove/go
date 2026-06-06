@@ -34,6 +34,8 @@ calculate_dimensions() {
 
     GO_CELL_SIZE = min_dim / GO_BOARD_SIZE;
     GO_BOARD_OFFSET = -(min_dim / 2.0) + (GO_CELL_SIZE / 2.0);
+
+    llSetObjectDesc((string)GO_BOARD_SIZE + "|" + (string)GO_CELL_SIZE);
 }
 
 init_board() {

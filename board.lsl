@@ -22,6 +22,8 @@ calculate_dimensions() {
 
     CELL_SIZE = min_dim / BOARD_SIZE;
     BOARD_OFFSET = -(min_dim / 2.0) + (CELL_SIZE / 2.0);
+
+    llSetObjectDesc((string)BOARD_SIZE + "|" + (string)CELL_SIZE);
 }
 
 init_board() {

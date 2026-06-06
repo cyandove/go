@@ -15,6 +15,21 @@ set_appearance() {
     }
 }
 
+resize_for_board() {
+    key board_key = llGetCreator();
+    vector board_info = llGetObjectDetails(board_key, [OBJECT_DESC]);
+    string desc = llList2String(board_info, 0);
+
+    if (desc != "") {
+        list parts = llParseString2List(desc, ["|"], []);
+        if (llGetListLength(parts) >= 2) {
+            float cell_size = (float)llList2String(parts, 1);
+            float stone_size = cell_size * 0.4;
+            llSetScale(<stone_size, stone_size, stone_size * 0.5>);
+        }
+    }
+}
+
 default {
     state_entry() {
         // Parse stone type from object name: "1_stone" or "2_stone"
@@ -26,11 +41,8 @@ default {
         }
 
         set_appearance();
+        resize_for_board();
 
-        // Scale stone appropriately (small 0.3m radius sphere)
-        llSetScale(<0.3, 0.3, 0.15>);
-
-        // Slight lift above board to avoid z-fighting
         llSetPos(llGetPos() + <0, 0, 0.05>);
     }
 

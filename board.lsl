@@ -63,9 +63,16 @@ get_stone_state(integer x, integer y) {
 }
 
 pass_turn() {
-    current_player = (current_player == 1) ? 2 : 1;
-    llSay(0, "Player " + (string)current_player + "'s turn (Stone: " +
-          ((current_player == 1) ? "Black" : "White") + ")");
+    if (current_player == 1) {
+        current_player = 2;
+    } else {
+        current_player = 1;
+    }
+    string stone_color = "White";
+    if (current_player == 1) {
+        stone_color = "Black";
+    }
+    llSay(0, "Player " + (string)current_player + "'s turn (Stone: " + stone_color + ")");
 }
 
 reset_game() {

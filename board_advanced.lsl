@@ -62,7 +62,12 @@ capture_group(integer x, integer y, integer opponent) {
 
 check_and_capture(integer player) {
     // Check all adjacent opponent groups for captures
-    integer opponent = (player == BLACK) ? WHITE : BLACK;
+    integer opponent;
+    if (player == BLACK) {
+        opponent = WHITE;
+    } else {
+        opponent = BLACK;
+    }
     integer captured = 0;
 
     list adjacent = [];
@@ -74,8 +79,11 @@ check_and_capture(integer player) {
                 if (!has_liberty(i, j)) {
                     integer c = capture_group(i, j, opponent);
                     captured += c;
-                    if (player == BLACK) black_captures += c;
-                    else white_captures += c;
+                    if (player == BLACK) {
+                        black_captures += c;
+                    } else {
+                        white_captures += c;
+                    }
                 }
             }
         }
@@ -105,7 +113,11 @@ place_stone(integer x, integer y, integer player) {
 }
 
 pass_turn() {
-    current_player = (current_player == BLACK) ? WHITE : BLACK;
+    if (current_player == BLACK) {
+        current_player = WHITE;
+    } else {
+        current_player = BLACK;
+    }
     say_game(player_name(current_player) + " to play");
 }
 

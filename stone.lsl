@@ -50,7 +50,11 @@ default {
                   (string)board_y + ") removed.");
             llDie();
         } else {
-            llSay(0, (player == 1 ? "Black" : "White") + " stone at (" +
+            string player_color = "White";
+            if (player == 1) {
+                player_color = "Black";
+            }
+            llSay(0, player_color + " stone at (" +
                   (string)board_x + ", " + (string)board_y + ")");
         }
     }

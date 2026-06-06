@@ -17,7 +17,7 @@ set_appearance() {
 
 resize_for_board() {
     key board_key = llGetCreator();
-    vector board_info = llGetObjectDetails(board_key, [OBJECT_DESC]);
+    list board_info = llGetObjectDetails(board_key, [OBJECT_DESC]);
     string desc = llList2String(board_info, 0);
 
     if (desc != "") {

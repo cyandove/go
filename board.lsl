@@ -10,9 +10,6 @@ list board_state = [];
 integer current_player = 1;  // 1 for black, 2 for white
 integer game_active = TRUE;
 
-// Stone object info for tracking
-list stone_ids = [];
-
 void init_board() {
     integer i;
     board_state = [];

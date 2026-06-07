@@ -8,11 +8,30 @@ Black always goes first.
 The goal is to surround more territory than your opponent by the end of the game.
 
 
-SETUP
------
-The board is 19x19 by default (also played on 13x13 or 9x9 for shorter games).
-Touch the board to open the setup menu, where you can choose a board size and
-start a new game.
+STARTING A GAME
+---------------
+Touch the board to open the setup menu. From there you can:
+
+  New Game    Start a game with the current board size
+  Board Size  Enter any size (9, 13, and 19 are standard)
+
+The board size can be changed before starting a new game. The board prim can also
+be resized in-world at any time — the stone size and spacing will adjust to match.
+
+
+PLAYER REGISTRATION
+-------------------
+Players are registered automatically the first time they place a stone:
+
+  - The first person to place a Black stone is registered as the Black player.
+  - The first person to place a White stone is registered as the White player.
+  - One person can play both colors by placing both their first Black and White
+    stones themselves.
+
+Once registered, only the registered player may place stones of that color.
+Touches by other players on the wrong turn are silently ignored.
+
+Either registered player may use chat commands.
 
 
 PLACING STONES
@@ -29,29 +48,37 @@ A stone or group of connected stones is captured when all of its liberties are
 taken. Liberties are the empty intersections directly adjacent (up, down, left,
 right) to a stone or group.
 
-When a group is captured, its stones are removed from the board and counted as
-prisoners for the capturing player.
+When a group is captured, its stones are automatically removed from the board
+and counted as prisoners for the capturing player.
 
 
 THE SUICIDE RULE
 ----------------
-You may not place a stone in a position where it (or its group) would immediately
-have no liberties — unless the placement captures opponent stones first, which
-may free up liberties.
+You may not place a stone in a position where it (or its group) would have no
+liberties after placement — unless doing so captures opponent stones first.
 
 
 ENDING THE GAME
 ---------------
-The game ends when both players pass their turn consecutively. To pass, type
-"pass" in local chat.
+The game ends when both players pass consecutively. Type "pass" in local chat
+to pass your turn.
 
-When the game ends, the board automatically counts territory and announces the
-final scores and winner.
+When the game ends, the board automatically counts territory and announces
+scores and the winner.
 
-Before the score is calculated, both players should agree on any dead groups
-still on the board and remove them using the Reset Game option on each stone.
+
+DEAD STONES
+-----------
+Before the final score is accurate, both players must agree on any dead groups
+still on the board and remove them:
+
+  1. Touch a dead stone to open its menu.
+  2. Choose "Remove Stone" to remove it without resetting the game.
+  3. Repeat for all dead stones.
+  4. Touch any remaining stone and choose "Score" to recalculate.
+
 Dead stones left on the board will cause their surrounded empty space to be
-counted as neutral rather than territory.
+counted as neutral rather than territory, reducing both players' scores.
 
 
 SCORING
@@ -66,13 +93,21 @@ first. Because komi is a half-point, ties are impossible.
 
 CONTROLS
 --------
-  Touch board     Open setup menu (when no game is running)
-  Touch stone     View game status / reset the game
-  pass            (chat) Pass your turn
-  reset           (chat) Reset the game
-  undo            (chat) Undo your last stone placement
-                  Note: captures cannot be restored by undo
-  status          (chat) Show current capture counts
+  Touch board       Open setup menu (when no game is running)
+
+  Touch stone       Open stone menu:
+    Score           Recalculate and announce the score (after game ends)
+    Remove Stone    Remove this stone (for dead stone cleanup)
+    Reset Game      Reset the board and end the current game
+    Cancel          Close the menu
+
+  pass    (chat)    Pass your turn
+  undo    (chat)    Undo your last stone (captures cannot be restored)
+  status  (chat)    Show current capture counts
+  reset   (chat)    Reset the game
+
+Chat commands are available to both registered players. Anyone may touch the
+board to start a new game, or touch a stone to reset an abandoned game.
 
 
 STANDARD BOARD SIZES

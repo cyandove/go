@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1] - 2026-06-07
+
+### Fixed
+- Instructions corrected to match implementation: removed unimplemented handicap stones
+  reference, fixed `status` command description, clarified stone menu availability and
+  Score button behaviour
+
 ## [1.1.0] - 2026-06-07
 
 ### Added

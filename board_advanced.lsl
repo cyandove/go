@@ -281,15 +281,12 @@ calculate_territory() {
     }
 }
 
-end_game() {
+announce_score() {
     calculate_territory();
 
     integer black_score = black_territory + black_captures;
     float white_score = (float)(white_territory + white_captures) + KOMI;
 
-    game_active = FALSE;
-    say_game("Both players passed. Game over!");
-    say_game("Note: remove any agreed dead stones first for an accurate count.");
     say_game("Black: " + (string)black_score + " pts  (" +
              (string)black_territory + " territory + " +
              (string)black_captures + " captures)");
@@ -301,6 +298,13 @@ end_game() {
     } else {
         say_game("Black wins by " + (string)((float)black_score - white_score) + " points!");
     }
+}
+
+end_game() {
+    game_active = FALSE;
+    say_game("Both players passed. Game over!");
+    say_game("Remove any agreed dead stones, then touch a stone and choose Score.");
+    announce_score();
     say_game("Touch board to start a new game.");
 }
 
@@ -442,6 +446,10 @@ default {
                 show_status();
             } else if (message == "undo") {
                 undo_last_move();
+            } else if (message == "score") {
+                if (!game_active) {
+                    announce_score();
+                }
             } else if (llGetSubString(message, 0, 5) == "remove") {
                 list parts = llParseString2List(message, [":"], []);
                 if (llGetListLength(parts) == 3) {

@@ -16,20 +16,19 @@ Touch the board to open the setup menu. From there you can:
   Board Size  Enter any size (9, 13, and 19 are standard)
 
 The board size can be changed before starting a new game. The board prim can also
-be resized in-world at any time — the stone size and spacing will adjust to match.
+be resized in-world at any time — stone size and spacing adjust automatically.
 
 
 PLAYER REGISTRATION
 -------------------
-Players are registered automatically the first time they place a stone:
+Players are registered the first time they place a stone:
 
   - The first person to place a Black stone is registered as the Black player.
   - The first person to place a White stone is registered as the White player.
-  - One person can play both colors by placing both their first Black and White
-    stones themselves.
+  - One person can play both colors by placing the first stone of each color.
 
-Once registered, only the registered player may place stones of that color.
-Touches by other players on the wrong turn are silently ignored.
+Once registered, only that player may place stones of their color. Touches by
+other players on the wrong turn are silently ignored.
 
 Either registered player may use chat commands.
 
@@ -93,21 +92,21 @@ first. Because komi is a half-point, ties are impossible.
 
 CONTROLS
 --------
-  Touch board       Open setup menu (when no game is running)
+  Touch board       Open setup menu (only when no game is active)
 
-  Touch stone       Open stone menu:
-    Score           Recalculate and announce the score (after game ends)
+  Touch stone       Open stone menu (available at any time):
+    Score           Recalculate and announce scores (only works after game ends)
     Remove Stone    Remove this stone (for dead stone cleanup)
     Reset Game      Reset the board and end the current game
     Cancel          Close the menu
 
   pass    (chat)    Pass your turn
   undo    (chat)    Undo your last stone (captures cannot be restored)
-  status  (chat)    Show current capture counts
+  status  (chat)    Show whose turn it is and current capture counts
   reset   (chat)    Reset the game
 
-Chat commands are available to both registered players. Anyone may touch the
-board to start a new game, or touch a stone to reset an abandoned game.
+Chat commands are restricted to registered players. Anyone may touch the board
+to start a new game, or touch a stone to reset an abandoned game.
 
 
 STANDARD BOARD SIZES
@@ -123,5 +122,3 @@ TIPS FOR BEGINNERS
   A group with two eyes can never be captured.
 - Corner and edge positions are easier to defend than the center.
 - Start with 9x9 to learn the basics before moving to larger boards.
-- Handicap stones can be placed manually at the star points before starting
-  to balance games between players of different skill levels.

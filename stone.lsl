@@ -27,7 +27,7 @@ set_appearance() {
 show_stone_menu(string status_text) {
     llListenRemove(stone_menu_listen);
     stone_menu_listen = llListen(STONE_MENU_CHANNEL, "", toucher_key, "");
-    llDialog(toucher_key, status_text, ["Reset Game", "Cancel"], STONE_MENU_CHANNEL);
+    llDialog(toucher_key, status_text, ["Cancel", "Remove Stone", "Reset Game"], STONE_MENU_CHANNEL);
     llSetTimerEvent(30.0);
 }
 
@@ -80,7 +80,10 @@ default {
         } else if (channel == STONE_MENU_CHANNEL) {
             llListenRemove(stone_menu_listen);
             llSetTimerEvent(0.0);
-            if (message == "Reset Game") {
+            if (message == "Remove Stone") {
+                llSay(0, "remove:" + (string)board_x + ":" + (string)board_y);
+                llDie();
+            } else if (message == "Reset Game") {
                 llSay(0, "reset");
             }
         } else if (channel == 1) {

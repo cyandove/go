@@ -442,6 +442,16 @@ default {
                 show_status();
             } else if (message == "undo") {
                 undo_last_move();
+            } else if (llGetSubString(message, 0, 5) == "remove") {
+                list parts = llParseString2List(message, [":"], []);
+                if (llGetListLength(parts) == 3) {
+                    integer ridx = coord_to_index(
+                        (integer)llList2String(parts, 1),
+                        (integer)llList2String(parts, 2));
+                    if (ridx != -1) {
+                        board_state = llListReplaceList(board_state, [EMPTY], ridx, ridx);
+                    }
+                }
             }
         }
     }

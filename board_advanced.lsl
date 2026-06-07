@@ -19,6 +19,9 @@ integer white_captures = 0;
 list move_history = [];
 integer consecutive_passes = 0;
 
+key black_player = NULL_KEY;
+key white_player = NULL_KEY;
+
 float KOMI = 6.5;
 integer black_territory;
 integer white_territory;
@@ -31,6 +34,11 @@ integer MENU_CHANNEL = -9001;
 integer SIZE_CHANNEL = -9002;
 integer STATUS_REQUEST_CHANNEL = -9004;
 integer BOARD_CMD_CHANNEL = -9005;
+
+integer is_registered_player(key id) {
+    if (black_player == NULL_KEY && white_player == NULL_KEY) return TRUE;
+    return (id == black_player || id == white_player);
+}
 
 string player_name(integer p) {
     if (p == BLACK) return "Black";
@@ -334,6 +342,8 @@ start_game() {
     init_board();
     current_player = BLACK;
     game_active = TRUE;
+    black_player = NULL_KEY;
+    white_player = NULL_KEY;
     say_game((string)BOARD_SIZE + "x" + (string)BOARD_SIZE + " game started. Black to play.");
 }
 
@@ -404,6 +414,24 @@ default {
 
         if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return;
 
+        key toucher = llDetectedKey(0);
+
+        if (current_player == BLACK) {
+            if (black_player == NULL_KEY) {
+                black_player = toucher;
+                say_game(llKey2Name(toucher) + " registered as Black.");
+            } else if (black_player != toucher) {
+                return;
+            }
+        } else {
+            if (white_player == NULL_KEY) {
+                white_player = toucher;
+                say_game(llKey2Name(toucher) + " registered as White.");
+            } else if (white_player != toucher) {
+                return;
+            }
+        }
+
         if (place_stone(x, y, current_player)) {
             pass_turn();
         } else {
@@ -459,6 +487,7 @@ default {
                 }
             }
         } else if (channel == 0) {
+            if (!is_registered_player(id)) return;
             if (message == "pass") {
                 player_pass();
             } else if (message == "reset") {

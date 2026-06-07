@@ -302,7 +302,6 @@ default {
         if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return;
 
         if (place_stone(x, y, current_player)) {
-            say_game(player_name(current_player) + " plays at " + format_coord(x, y));
             pass_turn();
         } else {
             say_game("Illegal move at " + format_coord(x, y));

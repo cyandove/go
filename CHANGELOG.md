@@ -1,11 +1,13 @@
 # Changelog
 
-## [1.1.0] - Unreleased
+## [1.1.0] - 2026-06-07
 
 ### Added
 - Touch board before game starts to open setup menu (New Game, Board Size)
-- Board Size option opens text input for any square board size
+- Board Size option opens a text input for any square board size
 - Touch any stone during a game to open a reset confirmation dialog
+- Menu times out after 30 seconds if no selection is made
+- `pass_turn`, `undo_last_move`, and `show_status` now guard against being called with no active game
 
 ## [1.0.0] - 2026-06-06
 

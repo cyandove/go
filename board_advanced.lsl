@@ -1,4 +1,4 @@
-// Go Board
+// Go Board v1.1.0
 // Standard rules: placement, group capture, suicide prevention
 
 // Configuration: 9, 13, and 19 are standard sizes
@@ -13,10 +13,31 @@ integer EMPTY = 0;
 
 list board_state = [];
 integer current_player = BLACK;
-integer game_active = TRUE;
+integer game_active = FALSE;
 integer black_captures = 0;
 integer white_captures = 0;
 list move_history = [];
+
+integer menu_listen;
+integer size_listen;
+key menu_avatar;
+
+integer MENU_CHANNEL = -9001;
+integer SIZE_CHANNEL = -9002;
+
+string player_name(integer p) {
+    if (p == BLACK) return "Black";
+    if (p == WHITE) return "White";
+    return "Unknown";
+}
+
+say_game(string msg) {
+    llSay(0, "[Go] " + msg);
+}
+
+string format_coord(integer x, integer y) {
+    return "(" + (string)x + "," + (string)y + ")";
+}
 
 calculate_dimensions() {
     vector scale = llGetScale();
@@ -25,6 +46,20 @@ calculate_dimensions() {
     CELL_SIZE = min_dim / BOARD_SIZE;
     BOARD_OFFSET = -(min_dim / 2.0) + (CELL_SIZE / 2.0);
     llSetObjectDesc((string)BOARD_SIZE + "|" + (string)CELL_SIZE);
+}
+
+integer coord_to_index(integer x, integer y) {
+    if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return -1;
+    return y * BOARD_SIZE + x;
+}
+
+list get_adjacent(integer x, integer y) {
+    list adj = [];
+    if (x + 1 < BOARD_SIZE) adj += [x + 1, y];
+    if (x - 1 >= 0)         adj += [x - 1, y];
+    if (y + 1 < BOARD_SIZE) adj += [x, y + 1];
+    if (y - 1 >= 0)         adj += [x, y - 1];
+    return adj;
 }
 
 init_board() {
@@ -38,23 +73,6 @@ init_board() {
     move_history = [];
 }
 
-integer coord_to_index(integer x, integer y) {
-    if (x < 0 || x >= BOARD_SIZE || y < 0 || y >= BOARD_SIZE) return -1;
-    return y * BOARD_SIZE + x;
-}
-
-// Returns flat list [x0,y0, x1,y1, ...]
-list get_adjacent(integer x, integer y) {
-    list adj = [];
-    if (x + 1 < BOARD_SIZE) adj += [x + 1, y];
-    if (x - 1 >= 0)         adj += [x - 1, y];
-    if (y + 1 < BOARD_SIZE) adj += [x, y + 1];
-    if (y - 1 >= 0)         adj += [x, y - 1];
-    return adj;
-}
-
-// BFS flood-fill to find all connected stones of the same color
-// Returns flat list [x0,y0, x1,y1, ...]
 list find_group(integer sx, integer sy, integer color) {
     list group = [];
     list frontier = [sx, sy];
@@ -85,7 +103,6 @@ list find_group(integer sx, integer sy, integer color) {
     return group;
 }
 
-// True if any stone in the group has at least one empty adjacent cell
 integer group_has_liberty(list group) {
     integer i;
     for (i = 0; i < llGetListLength(group); i += 2) {
@@ -103,8 +120,6 @@ integer group_has_liberty(list group) {
     return FALSE;
 }
 
-// Check opponent groups adjacent to the placed stone; remove any with no liberties.
-// Returns flat list of captured positions [x0,y0, x1,y1, ...]
 list capture_adjacent(integer px, integer py, integer opponent) {
     list captured = [];
     list checked = [];
@@ -138,7 +153,6 @@ list capture_adjacent(integer px, integer py, integer opponent) {
     return captured;
 }
 
-// start_param packing: bits 0-7 = x, bits 8-15 = y, bits 16-31 = cell_size in cm
 integer pack_start_param(integer x, integer y) {
     integer cell_cm = (integer)(CELL_SIZE * 100.0);
     return (cell_cm << 16) | (y << 8) | x;
@@ -161,13 +175,9 @@ integer place_stone(integer x, integer y, integer player) {
 
     list captured = capture_adjacent(x, y, opponent);
 
-    // Suicide rule: if the placed group still has no liberty, the move is illegal
-    // (unless it just captured — in which case it may now have liberties)
     list own_group = find_group(x, y, player);
     if (!group_has_liberty(own_group)) {
-        // Illegal move — undo placement
         board_state = llListReplaceList(board_state, [EMPTY], idx, idx);
-        // Restore any erroneously "captured" stones (shouldn't occur, but be safe)
         integer k;
         for (k = 0; k < llGetListLength(captured); k += 2) {
             integer cx = llList2Integer(captured, k);
@@ -177,11 +187,9 @@ integer place_stone(integer x, integer y, integer player) {
         return FALSE;
     }
 
-    // Rez stone prim from board inventory
     vector pos = <BOARD_OFFSET + x * CELL_SIZE, BOARD_OFFSET + y * CELL_SIZE, 0.1>;
     llRezObject((string)player + "_stone", llGetPos() + pos, ZERO_VECTOR, ZERO_ROTATION, pack_start_param(x, y));
 
-    // Handle captures
     integer num_captured = llGetListLength(captured) / 2;
     if (num_captured > 0) {
         if (player == BLACK) {
@@ -201,6 +209,7 @@ integer place_stone(integer x, integer y, integer player) {
 }
 
 pass_turn() {
+    if (!game_active) return;
     if (current_player == BLACK) {
         current_player = WHITE;
     } else {
@@ -212,18 +221,46 @@ pass_turn() {
 show_status() {
     say_game("Black captures: " + (string)black_captures +
              " | White captures: " + (string)white_captures);
-    say_game(player_name(current_player) + " to play");
+    if (game_active) {
+        say_game(player_name(current_player) + " to play");
+    } else {
+        say_game("No game in progress. Touch board to start.");
+    }
 }
 
-reset_game() {
+start_game() {
     init_board();
     current_player = BLACK;
     game_active = TRUE;
+    say_game((string)BOARD_SIZE + "x" + (string)BOARD_SIZE + " game started. Black to play.");
+}
+
+reset_game() {
+    game_active = FALSE;
+    init_board();
     llSay(1, "delete_all");
-    say_game("New game. Black to play.");
+    say_game("Game reset. Touch board to start.");
+}
+
+show_size_input(key avatar) {
+    llListenRemove(size_listen);
+    size_listen = llListen(SIZE_CHANNEL, "", avatar, "");
+    llTextBox(avatar, "Enter board size\n(9, 13, and 19 are standard):", SIZE_CHANNEL);
+}
+
+show_setup_menu(key avatar) {
+    menu_avatar = avatar;
+    llListenRemove(menu_listen);
+    menu_listen = llListen(MENU_CHANNEL, "", avatar, "");
+    llDialog(avatar,
+        "Go Board\nCurrent size: " + (string)BOARD_SIZE + "x" + (string)BOARD_SIZE,
+        ["Board Size", "New Game"],
+        MENU_CHANNEL);
+    llSetTimerEvent(30.0);
 }
 
 undo_last_move() {
+    if (!game_active) return;
     if (llGetListLength(move_history) < 3) {
         say_game("No moves to undo");
         return;
@@ -237,21 +274,7 @@ undo_last_move() {
     current_player = player;
 
     llSay(1, "delete:" + (string)x + ":" + (string)y);
-    say_game("Move undone. Note: captures cannot be restored.");
-}
-
-string player_name(integer p) {
-    if (p == BLACK) return "Black";
-    if (p == WHITE) return "White";
-    return "Unknown";
-}
-
-say_game(string msg) {
-    llSay(0, "[Go] " + msg);
-}
-
-string format_coord(integer x, integer y) {
-    return "(" + (string)x + "," + (string)y + ")";
+    say_game("Undone. Note: captures cannot be restored.");
 }
 
 default {
@@ -260,12 +283,14 @@ default {
         init_board();
         llListen(0, "", "", "");
         llSetAlpha(0.3, ALL_SIDES);
-        say_game((string)BOARD_SIZE + "x" + (string)BOARD_SIZE + " board ready. Black to play.");
-        say_game("Commands: pass, reset, status, undo");
+        say_game((string)BOARD_SIZE + "x" + (string)BOARD_SIZE + " board ready. Touch to begin.");
     }
 
     touch_start(integer num_detected) {
-        if (!game_active) return;
+        if (!game_active) {
+            show_setup_menu(llDetectedKey(0));
+            return;
+        }
 
         vector touch_pos = llDetectedTouchPos(0);
         vector local_pos = touch_pos - llGetPos();
@@ -285,15 +310,42 @@ default {
     }
 
     listen(integer channel, string name, key id, string message) {
-        if (message == "pass") {
-            pass_turn();
-        } else if (message == "reset") {
-            reset_game();
-        } else if (message == "status") {
-            show_status();
-        } else if (message == "undo") {
-            undo_last_move();
+        if (channel == MENU_CHANNEL) {
+            llListenRemove(menu_listen);
+            llSetTimerEvent(0.0);
+            if (message == "New Game") {
+                start_game();
+            } else if (message == "Board Size") {
+                show_size_input(id);
+            }
+        } else if (channel == SIZE_CHANNEL) {
+            llListenRemove(size_listen);
+            integer new_size = (integer)message;
+            if (new_size >= 2) {
+                BOARD_SIZE = new_size;
+                calculate_dimensions();
+                say_game("Board size set to " + (string)BOARD_SIZE + "x" + (string)BOARD_SIZE + ".");
+            } else {
+                say_game("Invalid size — enter a positive whole number.");
+            }
+            show_setup_menu(menu_avatar);
+        } else if (channel == 0) {
+            if (message == "pass") {
+                pass_turn();
+            } else if (message == "reset") {
+                reset_game();
+            } else if (message == "status") {
+                show_status();
+            } else if (message == "undo") {
+                undo_last_move();
+            }
         }
+    }
+
+    timer() {
+        llListenRemove(menu_listen);
+        llListenRemove(size_listen);
+        llSetTimerEvent(0.0);
     }
 
     on_rez(integer start_param) {

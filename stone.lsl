@@ -1,14 +1,15 @@
 // Go Stone v1.1.0
 // Template: name "1_stone" (black) or "2_stone" (white), place in board inventory.
 
-integer STONE_MENU_CHANNEL = -9003;
 integer STATUS_REQUEST_CHANNEL = -9004;
+integer BOARD_CMD_CHANNEL = -9005;
 
 integer player;
 integer board_x;
 integer board_y;
 
 integer stone_menu_listen;
+integer stone_menu_channel;
 integer status_listen;
 integer status_channel;
 key toucher_key;
@@ -26,8 +27,9 @@ set_appearance() {
 
 show_stone_menu(string status_text) {
     llListenRemove(stone_menu_listen);
-    stone_menu_listen = llListen(STONE_MENU_CHANNEL, "", toucher_key, "");
-    llDialog(toucher_key, status_text, ["Cancel", "Remove Stone", "Score", "Reset Game"], STONE_MENU_CHANNEL);
+    stone_menu_channel = -1 - (integer)llFrand(9999999.0);
+    stone_menu_listen = llListen(stone_menu_channel, "", toucher_key, "");
+    llDialog(toucher_key, status_text, ["Cancel", "Remove Stone", "Score", "Reset Game"], stone_menu_channel);
     llSetTimerEvent(30.0);
 }
 
@@ -77,16 +79,16 @@ default {
             llListenRemove(status_listen);
             llSetTimerEvent(0.0);
             show_stone_menu(message);
-        } else if (channel == STONE_MENU_CHANNEL) {
+        } else if (channel == stone_menu_channel) {
             llListenRemove(stone_menu_listen);
             llSetTimerEvent(0.0);
             if (message == "Remove Stone") {
-                llSay(0, "remove:" + (string)board_x + ":" + (string)board_y);
+                llSay(BOARD_CMD_CHANNEL, "remove:" + (string)board_x + ":" + (string)board_y);
                 llDie();
             } else if (message == "Score") {
-                llSay(0, "score");
+                llSay(BOARD_CMD_CHANNEL, "score");
             } else if (message == "Reset Game") {
-                llSay(0, "reset");
+                llSay(BOARD_CMD_CHANNEL, "reset");
             }
         } else if (channel == 1) {
             if (message == "delete_all") {
@@ -106,7 +108,6 @@ default {
 
     timer() {
         if (awaiting_status) {
-            // Board didn't respond — show menu anyway without status
             awaiting_status = FALSE;
             llListenRemove(status_listen);
             show_stone_menu("Could not get game status.");

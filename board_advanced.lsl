@@ -30,6 +30,7 @@ key menu_avatar;
 integer MENU_CHANNEL = -9001;
 integer SIZE_CHANNEL = -9002;
 integer STATUS_REQUEST_CHANNEL = -9004;
+integer BOARD_CMD_CHANNEL = -9005;
 
 string player_name(integer p) {
     if (p == BLACK) return "Black";
@@ -384,6 +385,7 @@ default {
         init_board();
         llListen(0, "", "", "");
         llListen(STATUS_REQUEST_CHANNEL, "", "", "");
+        llListen(BOARD_CMD_CHANNEL, "", "", "");
         llSetAlpha(0.3, ALL_SIDES);
         say_game((string)BOARD_SIZE + "x" + (string)BOARD_SIZE + " board ready. Touch to begin.");
     }
@@ -437,19 +439,14 @@ default {
                     (string)black_captures + "\nWhite captures: " + (string)white_captures;
                 llSay(resp_channel, status);
             }
-        } else if (channel == 0) {
-            if (message == "pass") {
-                player_pass();
-            } else if (message == "reset") {
-                reset_game();
-            } else if (message == "status") {
-                show_status();
-            } else if (message == "undo") {
-                undo_last_move();
-            } else if (message == "score") {
+        } else if (channel == BOARD_CMD_CHANNEL) {
+            if (message == "score") {
                 if (!game_active) {
+                    say_game("Calculating score...");
                     announce_score();
                 }
+            } else if (message == "reset") {
+                reset_game();
             } else if (llGetSubString(message, 0, 5) == "remove") {
                 list parts = llParseString2List(message, [":"], []);
                 if (llGetListLength(parts) == 3) {
@@ -460,6 +457,16 @@ default {
                         board_state = llListReplaceList(board_state, [EMPTY], ridx, ridx);
                     }
                 }
+            }
+        } else if (channel == 0) {
+            if (message == "pass") {
+                player_pass();
+            } else if (message == "reset") {
+                reset_game();
+            } else if (message == "status") {
+                show_status();
+            } else if (message == "undo") {
+                undo_last_move();
             }
         }
     }

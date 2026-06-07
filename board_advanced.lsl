@@ -17,6 +17,7 @@ integer game_active = FALSE;
 integer black_captures = 0;
 integer white_captures = 0;
 list move_history = [];
+integer consecutive_passes = 0;
 
 integer menu_listen;
 integer size_listen;
@@ -72,6 +73,7 @@ init_board() {
     black_captures = 0;
     white_captures = 0;
     move_history = [];
+    consecutive_passes = 0;
 }
 
 list find_group(integer sx, integer sy, integer color) {
@@ -206,15 +208,34 @@ integer place_stone(integer x, integer y, integer player) {
     }
 
     move_history += [x, y, player];
+    consecutive_passes = 0;
     return TRUE;
 }
 
 pass_turn() {
-    if (!game_active) return;
     if (current_player == BLACK) {
         current_player = WHITE;
     } else {
         current_player = BLACK;
+    }
+}
+
+end_game() {
+    game_active = FALSE;
+    say_game("Both players passed. Game over!");
+    say_game("Black captures: " + (string)black_captures +
+             " | White captures: " + (string)white_captures);
+    say_game("Count territory to determine the final winner. Touch board to start a new game.");
+}
+
+player_pass() {
+    if (!game_active) return;
+    say_game(player_name(current_player) + " passes.");
+    consecutive_passes++;
+    if (consecutive_passes >= 2) {
+        end_game();
+    } else {
+        pass_turn();
     }
 }
 
@@ -338,7 +359,7 @@ default {
             }
         } else if (channel == 0) {
             if (message == "pass") {
-                pass_turn();
+                player_pass();
             } else if (message == "reset") {
                 reset_game();
             } else if (message == "status") {

@@ -11,7 +11,13 @@
 
 ### Changed
 - Removed "Black to play" / "White to play" chat announcements after each move
+- Removed stone placement chat messages; only captures and errors are announced
 - Stone status dialog fetches live game state from the board before showing
+- `pass` chat command now routes through `player_pass` instead of `pass_turn` directly
+
+### Added (continued)
+- Consecutive pass detection: two passes in a row ends the game and shows final capture counts
+- `Go - How to Play` notecard included with rules, scoring, controls, and beginner tips
 
 ## [1.0.0] - 2026-06-06
 

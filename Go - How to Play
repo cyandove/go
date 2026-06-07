@@ -1,0 +1,87 @@
+GO - HOW TO PLAY
+================
+
+Go is one of the oldest board games in the world, originating in China over 2,500
+years ago. Two players — Black and White — take turns placing stones on the board.
+Black always goes first.
+
+The goal is to surround more territory than your opponent by the end of the game.
+
+
+SETUP
+-----
+The board is 19x19 by default (also played on 13x13 or 9x9 for shorter games).
+Touch the board to open the setup menu, where you can choose a board size and
+start a new game.
+
+
+PLACING STONES
+--------------
+During your turn, touch any empty intersection on the board to place a stone.
+Stones are placed on intersections, not inside squares.
+
+Once placed, stones do not move.
+
+
+CAPTURING STONES
+----------------
+A stone or group of connected stones is captured when all of its liberties are
+taken. Liberties are the empty intersections directly adjacent (up, down, left,
+right) to a stone or group.
+
+When a group is captured, its stones are removed from the board and counted as
+prisoners for the capturing player.
+
+
+THE SUICIDE RULE
+----------------
+You may not place a stone in a position where it (or its group) would immediately
+have no liberties — unless the placement captures opponent stones first, which
+may free up liberties.
+
+
+ENDING THE GAME
+---------------
+The game ends when both players pass their turn consecutively. To pass, type
+"pass" in local chat.
+
+When the game ends, the board displays each player's capture count. Players then
+count surrounded territory to determine the final winner.
+
+
+SCORING
+-------
+Your score = territory you surround + opponent stones you captured.
+
+The player with the higher score wins.
+
+White receives a bonus (komi) of 6.5 points to compensate for Black going first.
+This is tracked by the players, not the board.
+
+
+CONTROLS
+--------
+  Touch board     Open setup menu (when no game is running)
+  Touch stone     View game status / reset the game
+  pass            (chat) Pass your turn
+  reset           (chat) Reset the game
+  undo            (chat) Undo your last stone placement
+                  Note: captures cannot be restored by undo
+  status          (chat) Show current capture counts
+
+
+STANDARD BOARD SIZES
+--------------------
+  19x19  Full game — classic, strategic, takes 1–2+ hours
+  13x13  Medium — good for intermediate players, ~30–60 minutes
+   9x9   Quick game — great for beginners, ~10–20 minutes
+
+
+TIPS FOR BEGINNERS
+------------------
+- Try to build groups with two separate enclosed spaces (called "eyes").
+  A group with two eyes can never be captured.
+- Corner and edge positions are easier to defend than the center.
+- Start with 9x9 to learn the basics before moving to larger boards.
+- Handicap stones can be placed manually at the star points before starting
+  to balance games between players of different skill levels.

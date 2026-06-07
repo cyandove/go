@@ -2,11 +2,17 @@
 // Template: name "1_stone" (black) or "2_stone" (white), place in board inventory.
 
 integer STONE_MENU_CHANNEL = -9003;
+integer STATUS_REQUEST_CHANNEL = -9004;
 
 integer player;
 integer board_x;
 integer board_y;
+
 integer stone_menu_listen;
+integer status_listen;
+integer status_channel;
+key toucher_key;
+integer awaiting_status;
 
 set_appearance() {
     if (player == 1) {
@@ -16,6 +22,13 @@ set_appearance() {
         llSetColor(<1.0, 1.0, 1.0>, ALL_SIDES);
         llSetText("", ZERO_VECTOR, 0.0);
     }
+}
+
+show_stone_menu(string status_text) {
+    llListenRemove(stone_menu_listen);
+    stone_menu_listen = llListen(STONE_MENU_CHANNEL, "", toucher_key, "");
+    llDialog(toucher_key, status_text, ["Reset Game", "Cancel"], STONE_MENU_CHANNEL);
+    llSetTimerEvent(30.0);
 }
 
 default {
@@ -49,22 +62,22 @@ default {
     }
 
     touch_start(integer num_detected) {
-        key toucher = llDetectedKey(0);
-        string color = "White";
-        if (player == 1) {
-            color = "Black";
-        }
-        llListenRemove(stone_menu_listen);
-        stone_menu_listen = llListen(STONE_MENU_CHANNEL, "", toucher, "");
-        llDialog(toucher,
-            color + " stone at " + (string)board_x + "," + (string)board_y,
-            ["Reset Game", "Cancel"],
-            STONE_MENU_CHANNEL);
-        llSetTimerEvent(30.0);
+        toucher_key = llDetectedKey(0);
+        awaiting_status = TRUE;
+        status_channel = -1 - (integer)llFrand(9999999.0);
+        llListenRemove(status_listen);
+        status_listen = llListen(status_channel, "", "", "");
+        llSay(STATUS_REQUEST_CHANNEL, "status|" + (string)status_channel);
+        llSetTimerEvent(3.0);
     }
 
     listen(integer channel, string name, key id, string message) {
-        if (channel == STONE_MENU_CHANNEL) {
+        if (channel == status_channel && awaiting_status) {
+            awaiting_status = FALSE;
+            llListenRemove(status_listen);
+            llSetTimerEvent(0.0);
+            show_stone_menu(message);
+        } else if (channel == STONE_MENU_CHANNEL) {
             llListenRemove(stone_menu_listen);
             llSetTimerEvent(0.0);
             if (message == "Reset Game") {
@@ -87,7 +100,14 @@ default {
     }
 
     timer() {
-        llListenRemove(stone_menu_listen);
-        llSetTimerEvent(0.0);
+        if (awaiting_status) {
+            // Board didn't respond — show menu anyway without status
+            awaiting_status = FALSE;
+            llListenRemove(status_listen);
+            show_stone_menu("Could not get game status.");
+        } else {
+            llListenRemove(stone_menu_listen);
+            llSetTimerEvent(0.0);
+        }
     }
 }

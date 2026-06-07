@@ -24,6 +24,7 @@ key menu_avatar;
 
 integer MENU_CHANNEL = -9001;
 integer SIZE_CHANNEL = -9002;
+integer STATUS_REQUEST_CHANNEL = -9004;
 
 string player_name(integer p) {
     if (p == BLACK) return "Black";
@@ -215,7 +216,6 @@ pass_turn() {
     } else {
         current_player = BLACK;
     }
-    say_game(player_name(current_player) + " to play");
 }
 
 show_status() {
@@ -282,6 +282,7 @@ default {
         calculate_dimensions();
         init_board();
         llListen(0, "", "", "");
+        llListen(STATUS_REQUEST_CHANNEL, "", "", "");
         llSetAlpha(0.3, ALL_SIDES);
         say_game((string)BOARD_SIZE + "x" + (string)BOARD_SIZE + " board ready. Touch to begin.");
     }
@@ -302,7 +303,6 @@ default {
 
         if (place_stone(x, y, current_player)) {
             say_game(player_name(current_player) + " plays at " + format_coord(x, y));
-            show_status();
             pass_turn();
         } else {
             say_game("Illegal move at " + format_coord(x, y));
@@ -329,6 +329,14 @@ default {
                 say_game("Invalid size — enter a positive whole number.");
             }
             show_setup_menu(menu_avatar);
+        } else if (channel == STATUS_REQUEST_CHANNEL) {
+            list parts = llParseString2List(message, ["|"], []);
+            if (llList2String(parts, 0) == "status" && llGetListLength(parts) >= 2) {
+                integer resp_channel = (integer)llList2String(parts, 1);
+                string status = player_name(current_player) + " to play\nBlack captures: " +
+                    (string)black_captures + "\nWhite captures: " + (string)white_captures;
+                llSay(resp_channel, status);
+            }
         } else if (channel == 0) {
             if (message == "pass") {
                 pass_turn();

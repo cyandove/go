@@ -5,9 +5,13 @@
 ### Added
 - Touch board before game starts to open setup menu (New Game, Board Size)
 - Board Size option opens a text input for any square board size
-- Touch any stone during a game to open a reset confirmation dialog
-- Menu times out after 30 seconds if no selection is made
+- Touch any stone during a game to open a reset confirmation dialog showing current player and capture counts
+- Menus time out after 30 seconds if no selection is made
 - `pass_turn`, `undo_last_move`, and `show_status` now guard against being called with no active game
+
+### Changed
+- Removed "Black to play" / "White to play" chat announcements after each move
+- Stone status dialog fetches live game state from the board before showing
 
 ## [1.0.0] - 2026-06-06
 

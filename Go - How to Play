@@ -45,8 +45,13 @@ ENDING THE GAME
 The game ends when both players pass their turn consecutively. To pass, type
 "pass" in local chat.
 
-When the game ends, the board displays each player's capture count. Players then
-count surrounded territory to determine the final winner.
+When the game ends, the board automatically counts territory and announces the
+final scores and winner.
+
+Before the score is calculated, both players should agree on any dead groups
+still on the board and remove them using the Reset Game option on each stone.
+Dead stones left on the board will cause their surrounded empty space to be
+counted as neutral rather than territory.
 
 
 SCORING
@@ -55,8 +60,8 @@ Your score = territory you surround + opponent stones you captured.
 
 The player with the higher score wins.
 
-White receives a bonus (komi) of 6.5 points to compensate for Black going first.
-This is tracked by the players, not the board.
+White automatically receives 6.5 points (komi) to compensate for Black going
+first. Because komi is a half-point, ties are impossible.
 
 
 CONTROLS

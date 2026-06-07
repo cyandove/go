@@ -19,6 +19,10 @@ integer white_captures = 0;
 list move_history = [];
 integer consecutive_passes = 0;
 
+float KOMI = 6.5;
+integer black_territory;
+integer white_territory;
+
 integer menu_listen;
 integer size_listen;
 key menu_avatar;
@@ -220,12 +224,84 @@ pass_turn() {
     }
 }
 
+calculate_territory() {
+    black_territory = 0;
+    white_territory = 0;
+    list visited = [];
+
+    integer i;
+    for (i = 0; i < BOARD_SIZE * BOARD_SIZE; ++i) {
+        if (llList2Integer(board_state, i) == EMPTY &&
+            llListFindList(visited, [i]) == -1) {
+
+            list region = [];
+            list frontier = [i];
+            integer borders = 0;  // bit 0 = black, bit 1 = white
+
+            while (llGetListLength(frontier) > 0) {
+                integer cidx = llList2Integer(frontier, 0);
+                frontier = llDeleteSubList(frontier, 0, 0);
+
+                if (llList2Integer(board_state, cidx) == EMPTY &&
+                    llListFindList(region, [cidx]) == -1) {
+
+                    region += [cidx];
+
+                    integer cx = cidx % BOARD_SIZE;
+                    integer cy = cidx / BOARD_SIZE;
+                    list adj = get_adjacent(cx, cy);
+
+                    integer j;
+                    for (j = 0; j < llGetListLength(adj); j += 2) {
+                        integer nidx = coord_to_index(
+                            llList2Integer(adj, j),
+                            llList2Integer(adj, j + 1));
+                        integer nval = llList2Integer(board_state, nidx);
+                        if (nval == EMPTY) {
+                            if (llListFindList(region, [nidx]) == -1) {
+                                frontier += [nidx];
+                            }
+                        } else if (nval == BLACK) {
+                            borders = borders | 1;
+                        } else if (nval == WHITE) {
+                            borders = borders | 2;
+                        }
+                    }
+                }
+            }
+
+            visited += region;
+            integer region_size = llGetListLength(region);
+            if (borders == 1) {
+                black_territory += region_size;
+            } else if (borders == 2) {
+                white_territory += region_size;
+            }
+        }
+    }
+}
+
 end_game() {
+    calculate_territory();
+
+    integer black_score = black_territory + black_captures;
+    float white_score = (float)(white_territory + white_captures) + KOMI;
+
     game_active = FALSE;
     say_game("Both players passed. Game over!");
-    say_game("Black captures: " + (string)black_captures +
-             " | White captures: " + (string)white_captures);
-    say_game("Count territory to determine the final winner. Touch board to start a new game.");
+    say_game("Note: remove any agreed dead stones first for an accurate count.");
+    say_game("Black: " + (string)black_score + " pts  (" +
+             (string)black_territory + " territory + " +
+             (string)black_captures + " captures)");
+    say_game("White: " + (string)white_score + " pts  (" +
+             (string)white_territory + " territory + " +
+             (string)white_captures + " captures + 6.5 komi)");
+    if (white_score > (float)black_score) {
+        say_game("White wins by " + (string)(white_score - (float)black_score) + " points!");
+    } else {
+        say_game("Black wins by " + (string)((float)black_score - white_score) + " points!");
+    }
+    say_game("Touch board to start a new game.");
 }
 
 player_pass() {

@@ -16,7 +16,10 @@
 - `pass` chat command now routes through `player_pass` instead of `pass_turn` directly
 
 ### Added (continued)
-- Consecutive pass detection: two passes in a row ends the game and shows final capture counts
+- Consecutive pass detection: two passes in a row ends the game
+- Automatic territory counting at end of game using flood-fill (Japanese rules)
+- Komi (6.5 points) automatically added to White's final score
+- Winner announced with margin; ties impossible due to half-point komi
 - `Go - How to Play` notecard included with rules, scoring, controls, and beginner tips
 
 ## [1.0.0] - 2026-06-06

@@ -194,7 +194,7 @@ integer place_stone(integer x, integer y, integer player) {
         return FALSE;
     }
 
-    vector pos = <BOARD_OFFSET + x * CELL_SIZE, BOARD_OFFSET + y * CELL_SIZE, 0.1>;
+    vector pos = <BOARD_OFFSET + x * CELL_SIZE, BOARD_OFFSET + y * CELL_SIZE, 0.0>;
     llRezObject((string)player + "_stone", llGetPos() + pos, ZERO_VECTOR, ZERO_ROTATION, pack_start_param(x, y));
 
     integer num_captured = llGetListLength(captured) / 2;

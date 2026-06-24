@@ -89,6 +89,20 @@ init_board() {
     consecutive_passes = 0;
 }
 
+// Membership test for flat [x1,y1, x2,y2, ...] coordinate lists.
+// llListFindList can't be used for this: it matches subsequences that
+// straddle pair boundaries (e.g. finds (7,7) in [5,7, 7,2]).
+integer pair_in_list(list l, integer x, integer y) {
+    integer len = llGetListLength(l);
+    integer i;
+    for (i = 0; i < len; i += 2) {
+        if (llList2Integer(l, i) == x && llList2Integer(l, i + 1) == y) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 list find_group(integer sx, integer sy, integer color) {
     list group = [];
     list frontier = [sx, sy];
@@ -101,7 +115,7 @@ list find_group(integer sx, integer sy, integer color) {
         integer idx = coord_to_index(cx, cy);
         if (idx != -1 &&
             llList2Integer(board_state, idx) == color &&
-            llListFindList(group, [cx, cy]) == -1) {
+            !pair_in_list(group, cx, cy)) {
 
             group += [cx, cy];
 
@@ -110,7 +124,7 @@ list find_group(integer sx, integer sy, integer color) {
             for (i = 0; i < llGetListLength(adj); i += 2) {
                 integer nx = llList2Integer(adj, i);
                 integer ny = llList2Integer(adj, i + 1);
-                if (llListFindList(group, [nx, ny]) == -1) {
+                if (!pair_in_list(group, nx, ny)) {
                     frontier += [nx, ny];
                 }
             }
@@ -149,7 +163,7 @@ list capture_adjacent(integer px, integer py, integer opponent) {
         integer idx = coord_to_index(nx, ny);
         if (idx != -1 &&
             llList2Integer(board_state, idx) == opponent &&
-            llListFindList(checked, [nx, ny]) == -1) {
+            !pair_in_list(checked, nx, ny)) {
 
             list group = find_group(nx, ny, opponent);
             checked += group;
